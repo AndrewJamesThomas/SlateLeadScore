@@ -25,3 +25,13 @@ We do not have access to normal MLOPs tools such as those found on AWS or Azure.
 One major complication is that the size of each file has to be relatively small. There is no hard cutoff on filesize, but if it is too large then it is likely to fail sporadically. The easy solution to this is to a) score only "recent leads" not the entire database and b) break each file into smaller chunks that are more likely to load sucessfully.
 
 Moving forward we will need to run this process as part of the routine weekly tasks. However, we should push to automate this process when possible.
+
+## Next Steps:
+Developing this model will require the following steps:
+1) Finalize initial SQL query
+2) Write python script for extracting data from the API
+3) Perform EDA and process the data accordingly
+4) Develop the model
+5) Set up a way to load scored leads back into the SFTP
+6) Write a script to automate this process as much as possible
+7) Deploy, evaluate and gather feedback from units
