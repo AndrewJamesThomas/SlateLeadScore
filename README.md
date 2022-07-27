@@ -13,6 +13,15 @@ We can leveage Slate's exisiting webservices tools to easily and securly extract
 ## Predictive Modeling
 The reality of this project is that, while most leads never start an application, the ones who do signal their intention fairly loudly. This means that building a predictive model should be realively easy. 
 
-There are three key components of this model 1) Origin source (such as an inquiry form, list buy, event, etc.) 2) Online Activity (such as email activity, website pings, phone calls, etc.) 3) Time since Creating (We know that most leads convert in the first couple days, but the likelihood drops off signficantly after that).
+There are three key components of this model 1) Origin source (such as an inquiry form, list buy, event, etc.) 2) Online Activity (such as email activity, website pings, phone calls, etc.) 3) Time since Creating (We know that most leads convert in the first couple days, but the likelihood drops off signficantly after that). The first two components are extremely straightforward, but that last one is more complicated. Modelling that relationship will likely require somekind of surival-aware or sequence model.
 
-The first two components are extremely straightforward, but that last one is more complicated. A lead 
+There are two main concerns with using a propensity model in this way:
+a) Individuals may want to include their own variables with their own wieghts. This may seem like an odd request, but it is likely to occur. If this turns out to be an issue we can simply build an alternative "points based" system that can accomadate this request.
+b) Due to the imbalances in this data, most scores are likely to be extremely small. It may be problematic if most records have a score between 0-3%. Therfore, we should consider alternative approaches, such as ranking these scores so we can identify the "most likely to convert" leads or we could group leads into "unlikely to convert", "may convert", and "likely to convert" buckets.
+
+## Deployment
+We do not have access to normal MLOPs tools such as those found on AWS or Azure. Furthermore, IT has generally been retisent to support this kind of project in the past. Therefore we will have to run the model locally on a regular basis. To do this we will simply pull the data through the API, process it and run the model, then load the data back on to the Slate SFTP so that the batch tools can complete the upload automatically. It is likely possible to use the API to bypass the SFTP, but for now this is the easiest path forward. 
+
+One major complication is that the size of each file has to be relatively small. There is no hard cutoff on filesize, but if it is too large then it is likely to fail sporadically. The easy solution to this is to a) score only "recent leads" not the entire database and b) break each file into smaller chunks that are more likely to load sucessfully.
+
+Moving forward we will need to run this process as part of the routine weekly tasks. However, we should push to automate this process when possible.
