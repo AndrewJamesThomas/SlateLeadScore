@@ -10,6 +10,8 @@ Broadly speaking, there are four critical phases to this project: extract the da
 ## Data Extraction
 We can leveage Slate's exisiting webservices tools to easily and securly extract data from the database. Note that we are not using Slate's "query" tools because that does not offer us the flexability needed for this project. Rather, we will a) write custom SQL to access the data needed b) set up a query in Slate using the "custom SQL" query base that will allow us to expose the results of the query using web services and c) use python to request this data on demand through an API call. For posteriety, the SQL used for this underlying query will be included in this repo, but note that this code is never called by any code here. Rather, that code is copied into Slate and ran as a "Slate query". 
 
+Note that, due to FERPA requirements, general data privacy common sense, and a variety of other reasons, raw data is not included in this repo.
+
 ## Predictive Modeling
 The reality of this project is that, while most leads never start an application, the ones who do signal their intention fairly loudly. This means that building a predictive model should be realively easy. 
 
@@ -28,7 +30,6 @@ Moving forward we will need to run this process as part of the routine weekly ta
 
 ## Next Steps:
 Developing this model will require the following steps:
-1) Finalize initial SQL query
 2) Write python script for extracting data from the API
 3) Perform EDA and process the data accordingly
 4) Develop the model
