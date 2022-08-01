@@ -1,16 +1,17 @@
 select top 100
-	o.[record] as [person_id], 
-	(select [value] from dbo.getFieldTable(o.[record], 'college_of_interest')) as [college_of_interest],
-	o.[date] as [origin_date],
-	a.[created] as [conversion_date],
-	case when a.[id] is not null then 1 else 0 end as [conversion_ind],
-	lot.[summary] as [origin_summary],
-	o.[memo] as [origin_memo],
-	(select sum(case when [status] in ('sent', 'open', 'complaint', 'delivered', 'click', 'optout') then 1 else null end) from [message] where [mailing] is not null and [person] = o.[record]  and ([delivered] <= a.[created] or a.[created] is null)) as [sent],
-	(select sum(case when [status] in ('open', 'complaint', 'click', 'optout') then 1 else null end) from [message] where [mailing] is not null and [person] = o.[record]  and ([delivered] <= a.[created] or a.[created] is null)) as [sent],
-	(select sum(case when [status] in ('sent', 'open', 'complaint', 'delivered', 'click', 'optout') then 1 else null end) from [message] where [mailing] is not null and [person] = o.[record]  and ([delivered] <= a.[created] or a.[created] is null)) as [open],
-	(select sum(case when [status] in ('click') then 1 else null end) from [message] where [mailing] is not null and [person] = o.[record]  and ([delivered] <= a.[created] or a.[created] is null)) as [click]
-	-- repeat this pings, logins and activity
+	 o.[record] as [person_id]
+	,(select [value] from dbo.getFieldTable(o.[record], 'college_of_interest')) as [college_of_interest]
+	,o.[date] as [origin_date]
+	,a.[created] as [conversion_date]
+	,case when a.[id] is not null then 1 else 0 end as [conversion_ind]
+	,lot.[summary] as [origin_summary]
+	,o.[memo] as [origin_memo]
+	,(select sum(case when [status] in ('sent', 'open', 'complaint', 'delivered', 'click', 'optout') then 1 else null end) from [message] where [mailing] is not null and [person] = o.[record]  and ([delivered] <= a.[created] or a.[created] is null)) as [sent]
+	,(select sum(case when [status] in ('open', 'complaint', 'click', 'optout') then 1 else null end) from [message] where [mailing] is not null and [person] = o.[record]  and ([delivered] <= a.[created] or a.[created] is null)) as [sent]
+	,(select sum(case when [status] in ('sent', 'open', 'complaint', 'delivered', 'click', 'optout') then 1 else null end) from [message] where [mailing] is not null and [person] = o.[record]  and ([delivered] <= a.[created] or a.[created] is null)) as [open]
+	,(select sum(case when [status] in ('click') then 1 else null end) from [message] where [mailing] is not null and [person] = o.[record]  and ([delivered] <= a.[created] or a.[created] is null)) as [click]
+	-- repeat this logins and activity
+	,(select count(distinct [url]) from [ping] where [record] = o.[record] and ([timestamp] <= a.[created] or a.[created] is null)) as [ping_count]
 
 from [origin] o
 left join [lookup.origin.type] lot on (o.[type] = lot.[id])
