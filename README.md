@@ -30,7 +30,6 @@ Moving forward we will need to run this process as part of the routine weekly ta
 
 ## Next Steps:
 Developing this model will require the following steps:
-2) Write python script for extracting data from the API
 3) Perform EDA and process the data accordingly
 4) Develop the model
 5) Set up a way to load scored leads back into the SFTP
