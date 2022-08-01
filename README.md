@@ -29,7 +29,7 @@ One major complication is that the size of each file has to be relatively small.
 Moving forward we will need to run this process as part of the routine weekly tasks. However, we should push to automate this process when possible.
 
 ## Next Steps:
-Developing this model will require the following steps:
+Developing this model will require the following steps: <br>
 3) Perform EDA and process the data accordingly <br>
 4) Develop the model <br>
 5) Set up a way to load scored leads back into the SFTP <br>
