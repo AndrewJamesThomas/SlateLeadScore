@@ -77,3 +77,6 @@ and o.[first] = 1
 and lot.[summary] != 'Application'
 -- remove test records
 and (o.[record] NOT IN (select [record] from [tag] where ([tag] in ('test'))))
+-- Limit to pre-defined timerange
+and o.[date] >= dateadd(year, -4, getdate())
+
