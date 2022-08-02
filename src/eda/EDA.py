@@ -67,6 +67,12 @@ round((df.groupby('origin_memo').size().sort_values(ascending=False)/len(df))*10
 df.groupby("origin_memo").agg(["mean", 'size'])["conversion_ind"].sort_values("size")
 # Looks like list buys get like ~2%; # RFI and inquiry fors get like ~20%
 
+
+# crosstabs indicate that the memo and summary fields are extremly redundant.
+# For example, the GSPP Inquiry memo corresponds to the GSSP Inquiry summary and nothing else.
+# We should probably just drop the summary field
+crosstabs = pd.crosstab(df["origin_memo"], df["origin_summary"])
+
 # Sent
 df["sent"].head()
 df["sent"].isna().mean()
@@ -80,8 +86,48 @@ df["sent"].describe()
 df[["sent", "conversion_ind"]].corr()
 # Some negative correlation between emails sent and conversions. This is expected given data leakage.
 
+# ping
+df["ping_count"].head()
+df["ping_count"].isna().mean()
+df["ping_count"].describe()
+# No nulls, but some crazy outliers.
+df.query("ping_count>0")["ping_count"].hist(bins=100)
+
+# apt_count
+df["apt_count"].head()
+df["apt_count"].describe()
+df["apt_count"].isna().mean()
+
+# chat_count
+df["chat_count"].head()
+df["chat_count"].describe()
+df["chat_count"].isna().mean()
+
+# email_count
+df["email_count"].head()
+df["email_count"].describe()
+df["email_count"].isna().mean()
+
+# phone_call_count
+df["phone_call_count"].head()
+df["phone_call_count"].describe()
+df["phone_call_count"].isna().mean()
+
+# walkin_count
+df["walkin_count"].head()
+df["walkin_count"].describe()
+df["walkin_count"].isna().mean()
+
+# the activity fields actually look fine to me. They are sparse, but that should be manegable
+
+# Look at interactions
+corr_mat = df.corr()
+# Not much interest in the correlation matrix. No strong correlations expect between the message fields (Emails Sent, opens, etc.)
+
+
 '''
 Processing Tasks:
+    Fix data leakage issue in SQL (DONE)
     Fill missing colleges of interest with "unknown"
     Combine CAHSS colleges of interest
     Drop ELC, Law and LLI leads
@@ -89,6 +135,8 @@ Processing Tasks:
     Combine Inquiry forms into single origin
     Combine major "origin_memos" together
     Imput Null Values for sent
-    Fix data leakage issue in SQL
+    Probably need to handle messages outliers
+    Need to create rate field (open rates, click rates, etc)
+    Handle Ping Outliers
 '''
 
