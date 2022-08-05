@@ -30,7 +30,6 @@ Moving forward we will need to run this process as part of the routine weekly ta
 
 ## Next Steps:
 Developing this model will require the following steps: <br>
-3) Perform EDA and process the data accordingly <br>
 4) Develop the model <br>
 5) Set up a way to load scored leads back into the SFTP <br>
 6) Write a script to automate this process as much as possible <br>
