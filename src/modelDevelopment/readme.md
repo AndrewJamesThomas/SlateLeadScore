@@ -19,5 +19,5 @@ later, but at first blush we see three conlcusions: 1) The Ridge model does marg
 of the no information model (which predicts all records will not convert), however 3) The percision/recall/F1 scores are all pretty low (F1 Score: 0.42)
 
 ## Evaluation
-While the static models perform best at t=0, but overtime the regularized surival model outperforms the other options
-https://github.com/thomasandr/SlateLeadScore/blob/main/assets/model_performance.png
+While the static models perform best at t=0, but overtime the regularized surival model outperforms the other options.
+!['https://github.com/thomasandr/SlateLeadScore/blob/main/assets/model_performance.png'](https://github.com/thomasandr/SlateLeadScore/blob/main/assets/model_performance.png)
