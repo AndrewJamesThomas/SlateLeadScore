@@ -18,3 +18,6 @@ The hyperparameters were tuned using a 5-fold cross validation random grid searc
 later, but at first blush we see three conlcusions: 1) The Ridge model does marginally better than the other two models (Log Loss: 0.176) 2) There is a signficant boost in performance
 of the no information model (which predicts all records will not convert), however 3) The percision/recall/F1 scores are all pretty low (F1 Score: 0.42)
 
+## Evaluation
+While the static models perform best at t=0, but overtime the regularized surival model outperforms the other options
+https://github.com/thomasandr/SlateLeadScore/blob/main/assets/model_performance.png
