@@ -1,8 +1,6 @@
 import pandas as pd
 import numpy as np
 from lifelines import CoxPHFitter
-from sklearn.metrics import log_loss
-import tqdm
 
 # import data
 X_train = pd.read_csv("data/clean/X_train.csv")
@@ -20,6 +18,7 @@ y_test[X_test["days_to_convert"]>365] = 0
 # combine training data
 train_combined = X_train.join(y_train)
 
+# --- Part 1: CPH Without regularization
 # Unregularized survival model
 
 cph = CoxPHFitter()
@@ -34,20 +33,13 @@ cph.fit(train_combined[['email_count', 'phone_call_count', 'walkin_count', 'CTOR
 # convert cumulative hazard function to probability to convert
 predictions = 1-cph.predict_cumulative_hazard(X_test).T
 predictions = np.subtract(predictions.T, predictions[365])
+predictions = predictions.T
 
-# calculate auc over time
-auc_over_time = pd.DataFrame(data={"model": [],
-                                   "days": [],
-                                   "AUC": []})
+# save to csv
+predictions = predictions.join(y_test)
+predictions.to_csv("data/predictions/survival_noreg.csv", index=False)
 
-for i in tqdm.tqdm(predictions.index[1:-1]):
-    y_true = y_test[X_test["days_to_convert"]>i]
-    y_pred = predictions.T[X_test["days_to_convert"]>i][i]
-
-    value = log_loss(y_true, y_pred)
-    auc_over_time.loc[len(auc_over_time.index)]=["Survival", i, value]
-
-
+# --- Part 2: CPH With regularization
 # this model performed less well than the static model, but this has no regularization
 cph2 = CoxPHFitter(penalizer=0.8)
 cph2.fit(train_combined[['email_count', 'phone_call_count', 'walkin_count', 'CTOR',
@@ -58,6 +50,11 @@ cph2.fit(train_combined[['email_count', 'phone_call_count', 'walkin_count', 'CTO
                         ]],
         duration_col="days_to_convert", event_col="conversion_ind")
 
+# convert cumulative hazard function to probability to convert
 predictions = 1-cph2.predict_cumulative_hazard(X_test).T
 predictions = np.subtract(predictions.T, predictions[365])
+predictions = predictions.T
 
+# convert cumulative hazard function to probability to convert
+predictions = predictions.join(y_test)
+predictions.to_csv("data/predictions/survival_withreg.csv", index=False)
