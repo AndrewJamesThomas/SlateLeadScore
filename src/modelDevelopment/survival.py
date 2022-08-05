@@ -1,12 +1,7 @@
 import pandas as pd
 import numpy as np
-from scipy.stats import uniform
-import matplotlib.pyplot as plt
-from sksurv.nonparametric import kaplan_meier_estimator
-from sksurv.linear_model import CoxPHSurvivalAnalysis
-from sklearn.model_selection import RandomizedSearchCV
 from lifelines import CoxPHFitter
-from sklearn.metrics import log_loss, roc_auc_score, accuracy_score, f1_score
+from sklearn.metrics import log_loss
 import tqdm
 
 # import data
@@ -54,7 +49,6 @@ for i in tqdm.tqdm(predictions.index[1:-1]):
 
 
 # this model performed less well than the static model, but this has no regularization
-# TODO: Regularized survival model
 cph2 = CoxPHFitter(penalizer=0.8)
 cph2.fit(train_combined[['email_count', 'phone_call_count', 'walkin_count', 'CTOR',
                         'OR', 'days_to_convert', 'conversion_ind', 'ping_count_cut_med', 'ping_count_cut_high',
@@ -67,11 +61,3 @@ cph2.fit(train_combined[['email_count', 'phone_call_count', 'walkin_count', 'CTO
 predictions = 1-cph2.predict_cumulative_hazard(X_test).T
 predictions = np.subtract(predictions.T, predictions[365])
 
-for i in tqdm.tqdm(predictions.index[1:-1]):
-    y_true = y_test[X_test["days_to_convert"]>i]
-    y_pred = predictions.T[X_test["days_to_convert"]>i][i]
-
-    value = log_loss(y_true, y_pred)
-    auc_over_time.loc[len(auc_over_time.index)]=["Survival2", i, value]
-
-auc_over_time.query("model=='Survival2'").plot(x="days", y="AUC")
