@@ -20,4 +20,4 @@ of the no information model (which predicts all records will not convert), howev
 
 ## Evaluation
 While the static models perform best at t=0, but overtime the regularized surival model outperforms the other options.
-!['https://github.com/thomasandr/SlateLeadScore/blob/main/assets/model_performance.png'](https://github.com/thomasandr/SlateLeadScore/blob/main/assets/model_performance.png)
+!['https://github.com/thomasandr/SlateLeadScore/blob/main/assets/model_performance2.png'](https://github.com/thomasandr/SlateLeadScore/blob/main/assets/model_performance2.png)
