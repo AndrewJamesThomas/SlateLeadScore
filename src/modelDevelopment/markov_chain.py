@@ -1,0 +1,74 @@
+import pandas as pd
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import log_loss, roc_auc_score
+import tqdm
+
+RANDOM_SEED = 999
+
+# import data
+X_train = pd.read_csv("data/clean/X_train.csv")
+y_train = pd.read_csv("data/clean/y_train.csv")
+train = pd.concat([X_train, y_train], axis=1)
+
+X_test = pd.read_csv("data/clean/X_test.csv")
+y_test = pd.read_csv("data/clean/y_test.csv")
+test = pd.concat([X_test, y_test], axis=1)
+
+
+# create chain
+class BuildMarkovModel:
+    def __init__(self, training, testing):
+        self.training = training
+        self.testing = testing
+        self.chain = {}
+
+    def _create_subset(self, days, state_name):
+        training_subset = self.training[self.training["days_to_convert"] >= days]
+        testing_subset = self.testing[self.testing["days_to_convert"] >= days]
+
+        self.chain[state_name] = {
+            "train": training_subset,
+            "test": testing_subset
+        }
+
+    def build_chain(self, max_days):
+        for i in tqdm.tqdm(range(max_days)):
+            self._create_subset(i, f"day_{i}")
+
+    def build_models(self):
+        # add a new model to each state, giving the probability of success
+        if len(self.chain.keys()) == 0:
+            print("Please Build Chain First (use self.build_chain)")
+            return -1
+
+        for s in self.chain.keys():
+            # build model
+            x = self.chain[s]['train'].drop(["days_to_convert", "conversion_ind"], axis=1)
+            y = self.chain[s]["train"]["conversion_ind"]
+            model = LogisticRegression()
+            model.fit(x, y)
+
+            # add model to the chain
+            self.chain[s]["model"] = model
+
+            # test the model
+            x_test_chain = self.chain[s]['test'].drop(["days_to_convert", "conversion_ind"], axis=1)
+            y_test_chain = self.chain[s]['test']["conversion_ind"]
+
+            proba = model.predict_proba(x_test_chain)[:,1]
+            log_loss_value = log_loss(y_test_chain, proba)
+            auc_value = roc_auc_score(y_test_chain, proba)
+
+            self.chain[s]["log_loss"] = log_loss_value
+            self.chain[s]["auc"] = auc_value
+
+    def prediction_density_function(self):
+        # returns the probability of conversions over time (used in evaluation)
+        pass
+
+
+
+if __name__=="__main__":
+    MarkovChain = BuildMarkovModel(train, test)
+    MarkovChain.build_chain(10)
+    MarkovChain.build_models()
