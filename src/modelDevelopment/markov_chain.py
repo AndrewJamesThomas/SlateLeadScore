@@ -9,14 +9,14 @@ RANDOM_SEED = 999
 X_train = pd.read_csv("data/clean/X_train.csv")
 y_train = pd.read_csv("data/clean/y_train.csv")
 train = pd.concat([X_train, y_train], axis=1)
-train[train["days_to_convert"] > 365, "days_to_convert"] = 365
-train[train["days_to_convert"] < 0, "days_to_convert"] = 0
+train.loc[train["days_to_convert"] > 365, "days_to_convert"] = 365
+train.loc[train["days_to_convert"] < 0, "days_to_convert"] = 0
 
 X_test = pd.read_csv("data/clean/X_test.csv")
 y_test = pd.read_csv("data/clean/y_test.csv")
 test = pd.concat([X_test, y_test], axis=1)
-test[test["days_to_convert"] > 365, "days_to_convert"] = 365
-test[test["days_to_convert"] < 0, "days_to_convert"] = 0
+test.loc[test["days_to_convert"] > 365, "days_to_convert"] = 365
+test.loc[test["days_to_convert"] < 0, "days_to_convert"] = 0
 
 
 # create chain
@@ -45,7 +45,7 @@ class BuildMarkovModel:
             print("Please Build Chain First (use self.build_chain)")
             return -1
 
-        for s in self.chain.keys():
+        for s in tqdm.tqdm(self.chain.keys()):
             # build model
             x = self.chain[s]['train'].drop(["days_to_convert", "conversion_ind"], axis=1)
             y = self.chain[s]["train"]["conversion_ind"]
@@ -82,10 +82,6 @@ class BuildMarkovModel:
             log_loss_overtime.loc[len(log_loss_overtime)] = ["MarkovModel", r, self.chain[r]["log_loss"]]
 
         return auc_over_time, log_loss_overtime
-
-
-
-
 
 
 if __name__=="__main__":
