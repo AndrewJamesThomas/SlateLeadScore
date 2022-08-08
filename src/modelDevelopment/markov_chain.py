@@ -49,7 +49,7 @@ class BuildMarkovModel:
             # build model
             x = self.chain[s]['train'].drop(["days_to_convert", "conversion_ind"], axis=1)
             y = self.chain[s]["train"]["conversion_ind"]
-            model = LogisticRegression()
+            model = LogisticRegression(C=0.8)
             model.fit(x, y)
 
             # add model to the chain
@@ -84,7 +84,7 @@ class BuildMarkovModel:
         return auc_over_time, log_loss_overtime
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     MarkovChain = BuildMarkovModel(train, test)
     MarkovChain.build_chain(365)
     MarkovChain.build_models()
