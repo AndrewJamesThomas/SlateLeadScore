@@ -31,4 +31,4 @@ Determining the best modeling approach depends on where in the timeline we look.
 
 Overall, it appears that the survival model outperforms the markov model more late in the year than the markov model outperforms early in the year. Therefore, we will choose to move forward with only the survival model.
 
-!['https://github.com/thomasandr/SlateLeadScore/blob/main/assets/model_performance2.png'](https://github.com/thomasandr/SlateLeadScore/blob/main/assets/model_performance2.png)
+!['https://github.com/thomasandr/SlateLeadScore/blob/main/assets/model_performance3.png'](https://github.com/thomasandr/SlateLeadScore/blob/main/assets/model_performance3.png)
