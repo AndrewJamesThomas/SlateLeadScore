@@ -1,6 +1,9 @@
 import pandas as pd
 from datetime import timedelta
 from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from imblearn.over_sampling import SMOTE
+from imblearn.under_sampling import RandomUnderSampler
 
 df = pd.read_csv("data/raw/lead_scoring_4_years.csv")
 
@@ -88,11 +91,19 @@ X = df.drop(non_predictors, axis=1)
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=RANDOM_SEED)
 
+# re-balance the training data
+oversample = SMOTE(sampling_strategy=0.3)
+undersample = RandomUnderSampler(sampling_strategy=0.5)
+
+X_train_os, y_train_os = oversample.fit_resample(X_train, y_train)
+X_train_os, y_train_os = undersample.fit_resample(X_train_os, y_train_os)
+
+
 # save data
 df.to_csv("data/clean/full_lead_data.csv", index=False)
 
-X_train.to_csv("data/clean/X_train.csv", index=False)
-y_train.to_csv("data/clean/y_train.csv", index=False)
+X_train_os.to_csv("data/clean/X_train.csv", index=False)
+y_train_os.to_csv("data/clean/y_train.csv", index=False)
 
 X_test.to_csv("data/clean/X_test.csv", index=False)
 y_test.to_csv("data/clean/y_test.csv", index=False)
