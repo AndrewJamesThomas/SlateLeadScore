@@ -1,7 +1,6 @@
 import pandas as pd
-from datetime import timedelta
+from datetime import timedelta, date
 from sklearn.model_selection import train_test_split
-from sklearn.pipeline import Pipeline
 from imblearn.over_sampling import SMOTE
 from imblearn.under_sampling import RandomUnderSampler
 
@@ -25,6 +24,9 @@ df = df.loc[~df["college_of_interest"].isin(colleges_to_drop)]
 # --------- Origin/Conversion Dates
 # Fix origin_date datatype
 df["origin_date"] = pd.to_datetime(df["origin_date"])
+# Remove leads from the last year
+df = df[df["origin_date"] < (date.today() - pd.DateOffset(years=1))]
+
 
 # fix conversion date datatype
 df["conversion_date"] = pd.to_datetime(df["conversion_date"])
@@ -58,7 +60,7 @@ def cut_continuous_fields(field, cut_count, labels, data):
 
 df = cut_continuous_fields("ping_count", 15, ["low", "med", "high"], df)
 df = cut_continuous_fields("sent", 4, ["low", "med", "high", "very_high"], df)
-df = cut_continuous_fields("open", 3, ["low", "med", "high"], df)
+df = cut_continuous_fields("open", 4, ["low", "med", "high"], df)
 
 
 # --------- Create dummy fields
@@ -92,12 +94,12 @@ X = df.drop(non_predictors, axis=1)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=RANDOM_SEED)
 
 # re-balance the training data
-oversample = SMOTE(sampling_strategy=0.3)
-undersample = RandomUnderSampler(sampling_strategy=0.5)
+oversample = SMOTE(sampling_strategy=0.5)
+undersample = RandomUnderSampler(sampling_strategy=0.7)
 
 X_train_os, y_train_os = oversample.fit_resample(X_train, y_train)
 X_train_os, y_train_os = undersample.fit_resample(X_train_os, y_train_os)
-
+print(y_train_os.mean())
 
 # save data
 df.to_csv("data/clean/full_lead_data.csv", index=False)
