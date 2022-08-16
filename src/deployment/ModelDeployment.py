@@ -6,14 +6,14 @@ from lifelines import CoxPHFitter
 from joblib import dump, load
 
 
-class GetSlateData:
-    def __init__(self, h, id):
+class LeadScoreModel:
+    def __init__(self, h, id, years_min, years_max):
         self.url = 'https://gradadmissions.du.edu/manage/query/run'
-        self.df = self._query(h, id)
+        self.df = self._query(h, id, years_min, years_max)
         self.model = None
         self.meta_data = None
 
-    def _query(self, h, id):
+    def _query(self, h, id, years_min, years_max):
         """
         Simply use the parameters from the webservices URL and the results of that query will be returned as a pandas
         dataframe.
@@ -25,7 +25,10 @@ class GetSlateData:
             'id': id,
             'cmd': 'service',
             'output': 'json',
-            'h': h
+            'h': h,
+            'years_from': years_min,
+            'years_to': years_max
+
         }
         req = requests.get(self.url, params)
         return pd.json_normalize(req.json(), record_path="row")
@@ -36,8 +39,6 @@ class GetSlateData:
         """
         # Fix origin_date datatype
         self.df["origin_date"] = pd.to_datetime(self.df["origin_date"])
-        # Remove leads from the last year
-        df = self.df[self.df["origin_date"] < (date.today() - pd.DateOffset(years=1))]
 
         # fix conversion date datatype
         self.df["conversion_date"] = pd.to_datetime(self.df["conversion_date"])
@@ -80,9 +81,9 @@ class GetSlateData:
         return data
 
     def _cut_all_continuous_fields(self):
-        self.df = self.cut_continuous_fields("ping_count", 15, ["low", "med", "high"], self.df)
+        self.df = self.cut_continuous_fields("ping_count", 4, ["low", "med", "high"], self.df)
         self.df = self.cut_continuous_fields("sent", 4, ["low", "med", "high", "very_high"], self.df)
-        self.df = self.cut_continuous_fields("open", 4, ["low", "med", "high"], self.df)
+        self.df = self.cut_continuous_fields("open", 4, ["low", "med", "high", "very_high"], self.df)
 
     @staticmethod
     def create_dummies(field, data):
@@ -142,14 +143,3 @@ class GetSlateData:
                                               right_on=["person_id", "days"])
         return predictions
 
-
-if __name__ == "__main__":
-    H = "e3fe870e-f998-454a-a77b-099675f3daa0"
-    ID = "391e2b7e-a6d1-4fdc-9f0c-976189b74e45"
-
-    model = GetSlateData(h=H, id=ID)
-    model.process_data(["person_id", "college_of_interest"])
-    model.train_model()
-    predictions = model.run_model()
-
-#    output = model.meta_data
