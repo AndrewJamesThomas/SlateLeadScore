@@ -106,16 +106,18 @@ class GetSlateData:
                            "days_to_convert", "conversion_ind"]]
 
     def process_data(self, meta_fields):
-        self.meta_data = self.df[meta_fields]
-        self.df = self.df.drop(meta_fields, axis=1)
-
         self._fix_data_types()
         self._extract_inquiry_forms()
         self._get_message_rates()
         self._cut_all_continuous_fields()
         self._create_all_dummies()
-#        self._select_key_columns()
+        self.df = self.df.drop(["chat_count", "walkin_count"], axis=1)
 
+        self.df.loc[self.df["days_to_convert"] > 365, "days_to_convert"] = 365
+        self.df.loc[self.df["days_to_convert"] < 0, "days_to_convert"] = 0
+
+        self.meta_data = self.df[meta_fields + ["days_to_convert"]]
+        self.df = self.df.drop(meta_fields, axis=1)
         self.df = self.df.drop(["origin_date", "conversion_date"], axis=1)
 
     def load_model(self, path):
@@ -133,8 +135,12 @@ class GetSlateData:
         predictions = 1 - self.model.predict_cumulative_hazard(self.df).T
         predictions = np.subtract(predictions.T, predictions[365])
         predictions = predictions.T
-
-        self.meta_data = pd.concat([predictions, self.meta_data])
+        predictions = predictions.join(self.meta_data["person_id"])
+        predictions = pd.melt(predictions, id_vars="person_id", var_name="days", value_name="proba")
+        self.meta_data = self.meta_data.merge(predictions,
+                                              left_on=["person_id", "days_to_convert"],
+                                              right_on=["person_id", "days"])
+        return predictions
 
 
 if __name__ == "__main__":
@@ -144,6 +150,6 @@ if __name__ == "__main__":
     model = GetSlateData(h=H, id=ID)
     model.process_data(["person_id", "college_of_interest"])
     model.train_model()
-    #    model.run_model()
+    predictions = model.run_model()
 
 #    output = model.meta_data
