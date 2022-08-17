@@ -1,9 +1,11 @@
 import pandas as pd
 import numpy as np
-from datetime import date, timedelta
+from datetime import date
 import requests
 from lifelines import CoxPHFitter
 from joblib import dump, load
+import paramiko
+import math
 
 
 class LeadScoreModel:
@@ -31,6 +33,8 @@ class LeadScoreModel:
 
         }
         req = requests.get(self.url, params)
+        print(req)
+
         return pd.json_normalize(req.json(), record_path="row")
 
     def _fix_data_types(self):
@@ -43,11 +47,11 @@ class LeadScoreModel:
         # fix conversion date datatype
         self.df["conversion_date"] = pd.to_datetime(self.df["conversion_date"])
 
-        # impute missing conversion dates to one year from the origin date
-        self.df.loc[self.df["conversion_date"].isna(), "conversion_date"] = self.df["origin_date"] + timedelta(days=365)
-
         # Calculate days until conversion
         self.df['days_to_convert'] = (self.df["conversion_date"] - self.df["origin_date"]).dt.days
+
+        # impute missing conversion dates to difference between origin and current date
+        self.df.loc[self.df["days_to_convert"].isna(), "days_to_convert"] = ((pd.to_datetime(date.today()) - self.df['origin_date']).dt.days + 1)
 
         # message fields
         int_fields = ["sent", "open", "click", "ping_count", "apt_count", "chat_count", "email_count",
@@ -73,17 +77,22 @@ class LeadScoreModel:
         self.df["CTOR"] = self.df["click"] / self.df["open"]
         self.df["CTOR"] = self.df["CTOR"].fillna(0)
 
-    @staticmethod
-    def cut_continuous_fields(field, cut_count, labels, data):
-        new_field_name = field + "_cut"
-        data[new_field_name] = pd.qcut(data[field], cut_count, duplicates='drop', labels=labels)
-        data = data.drop([field], axis=1)
-        return data
-
     def _cut_all_continuous_fields(self):
-        self.df = self.cut_continuous_fields("ping_count", 4, ["low", "med", "high"], self.df)
-        self.df = self.cut_continuous_fields("sent", 4, ["low", "med", "high", "very_high"], self.df)
-        self.df = self.cut_continuous_fields("open", 4, ["low", "med", "high", "very_high"], self.df)
+        self.df["ping_count"] = ["ping_count_high" if i > 3
+                                 else "ping_count_zero" if i == 0
+                                 else "ping_count_low" for i in self.df['ping_count']]
+
+        self.df["sent"] = ["ping_count_high" if i >= 23
+                           else "ping_count_medium" if i >= 4 and i < 23
+                           else "ping_count_low" if i >0 and i < 4
+                           else "ping_count_zero" for i in self.df['sent']]
+
+        self.df["open"] = ["ping_count_high" if i >= 8
+                           else "ping_count_medium" if i >= 1 and i < 8
+                           else "ping_count_zero" for i in self.df['open']]
+
+        self.df["click"] = ["ping_count_high" if i >= 1
+                            else "ping_count_zero" for i in self.df['click']]
 
     @staticmethod
     def create_dummies(field, data):
@@ -93,9 +102,10 @@ class LeadScoreModel:
             .drop([field], axis=1)
 
     def _create_all_dummies(self):
-        self.df = self.create_dummies("ping_count_cut", self.df)
-        self.df = self.create_dummies("sent_cut", self.df)
-        self.df = self.create_dummies("open_cut", self.df)
+        self.df = self.create_dummies("ping_count", self.df)
+        self.df = self.create_dummies("sent", self.df)
+        self.df = self.create_dummies("open", self.df)
+        self.df = self.create_dummies("click", self.df)
         self.df = self.create_dummies("origin_summary", self.df)
 
     def _select_key_columns(self):
@@ -143,3 +153,28 @@ class LeadScoreModel:
                                               right_on=["person_id", "days"])
         return predictions
 
+    def deploy_to_slate(self, password, max_output_size=10000, username="dataanalyst@gradadmissions.du.edu"):
+        # open sftp connection
+        host = "ft.technolutions.net"
+        todays_date = date.today().strftime("%Y%m%d")
+
+        ssh_client = paramiko.SSHClient()
+        ssh_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh_client.connect(hostname=host, username=username, password=password)
+        ftp_client = ssh_client.open_sftp()
+
+        #chunk data
+        number_of_chunks = math.ceil(self.meta_data.shape[0] / max_output_size)
+        output_chunks = np.array_split(self.meta_data, number_of_chunks)
+
+        print("Beginning Upload")
+        for i, a in enumerate(output_chunks):
+            # load dataframe to Slate SFTP
+            # load to sftp
+            path = f"/test/incoming/oge_modelling/lead_scoring/lead_scores_v3_{todays_date}_{i}.csv"
+            print(f"Saving file {i} at location:\n{path}")
+            with ftp_client.open(path, 'w',
+                                 bufsize=32768) as f:
+                f.write(a.to_csv(index=False))
+
+        print("Upload Complete")
