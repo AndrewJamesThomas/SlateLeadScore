@@ -1,3 +1,5 @@
+<i><b>Note:</b> No personally identifying information or proprietary IP is included here. Care has been taken to comply with FERPA regulations and data security best practices. As such, no actual data or person-level are available..</i>
+
 # SlateLeadScore
 The Lead Propensity Model indicates is intended to be used to prioritize outreach to prospective applicants. This means developing a predictive model that returns the probability a lead will convert (ie, start an application). All data will be extracted from Technolutions' Slate CRM and the model will likely rely on features such as email rates, website pings, and the time since the lead entered the funnel. While this should be a relatively straightforward model there are a number of key challenges to be aware of:
 
@@ -27,10 +29,3 @@ We do not have access to normal MLOPs tools such as those found on AWS or Azure.
 One major complication is that the size of each file has to be relatively small. There is no hard cutoff on filesize, but if it is too large then it is likely to fail sporadically. The easy solution to this is to a) score only "recent leads" not the entire database and b) break each file into smaller chunks that are more likely to load sucessfully.
 
 Moving forward we will need to run this process as part of the routine weekly tasks. However, we should push to automate this process when possible.
-
-## Next Steps:
-Developing this model will require the following steps: <br>
-4) Develop the model <br>
-5) Set up a way to load scored leads back into the SFTP <br>
-6) Write a script to automate this process as much as possible <br>
-7) Deploy, evaluate and gather feedback from units
