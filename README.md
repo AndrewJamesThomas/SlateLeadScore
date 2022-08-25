@@ -1,4 +1,4 @@
-<i><b>Note:</b> No personally identifying information or proprietary IP is included here. Care has been taken to comply with FERPA regulations and data security best practices. As such, no actual data or person-level are available..</i>
+<i><b>Note:</b> No personally identifying information or proprietary IP is included here. Care has been taken to comply with FERPA regulations and data security best practices. As such, no actual data or person-level results are available.</i>
 
 # SlateLeadScore
 The Lead Propensity Model indicates is intended to be used to prioritize outreach to prospective applicants. This means developing a predictive model that returns the probability a lead will convert (ie, start an application). All data will be extracted from Technolutions' Slate CRM and the model will likely rely on features such as email rates, website pings, and the time since the lead entered the funnel. While this should be a relatively straightforward model there are a number of key challenges to be aware of:
