@@ -78,30 +78,40 @@ class LeadScoreModel:
         self.df["CTOR"] = self.df["CTOR"].fillna(0)
 
     def _cut_all_continuous_fields(self):
+        """
+        Cuts the sparsely populated ping fields into cateogrical fields
+        """
         self.df["ping_count"] = ["ping_count_high" if i > 3
                                  else "ping_count_zero" if i == 0
                                  else "ping_count_low" for i in self.df['ping_count']]
 
-        self.df["sent"] = ["ping_count_high" if i >= 23
-                           else "ping_count_medium" if i >= 4 and i < 23
-                           else "ping_count_low" if i >0 and i < 4
-                           else "ping_count_zero" for i in self.df['sent']]
+        self.df["sent"] = ["sent_count_high" if i >= 23
+                           else "sent_count_medium" if i >= 4 and i < 23
+                           else "sent_count_low" if i >0 and i < 4
+                           else "sent_count_zero" for i in self.df['sent']]
 
-        self.df["open"] = ["ping_count_high" if i >= 8
-                           else "ping_count_medium" if i >= 1 and i < 8
-                           else "ping_count_zero" for i in self.df['open']]
+        self.df["open"] = ["open_count_high" if i >= 8
+                           else "open_count_medium" if i >= 1 and i < 8
+                           else "open_count_zero" for i in self.df['open']]
 
-        self.df["click"] = ["ping_count_high" if i >= 1
-                            else "ping_count_zero" for i in self.df['click']]
+        self.df["click"] = ["click_count_high" if i >= 1
+                            else "click_count_zero" for i in self.df['click']]
 
-    @staticmethod
-    def create_dummies(field, data):
-        return data[field]\
+    def create_dummies(self, field):
+        """
+        Creates dummy variables from a given categorical field.
+        :param field: str, categorical field that is being converted into dummy variables.
+        :return: pd.Series
+        """
+        return self.df[field]\
             .pipe(pd.get_dummies, prefix=field)\
-            .join(data)\
+            .join(self.df)\
             .drop([field], axis=1)
 
     def _create_all_dummies(self):
+        """
+        Creates dummy variables for all categorical fields
+        """
         self.df = self.create_dummies("ping_count", self.df)
         self.df = self.create_dummies("sent", self.df)
         self.df = self.create_dummies("open", self.df)
@@ -109,6 +119,9 @@ class LeadScoreModel:
         self.df = self.create_dummies("origin_summary", self.df)
 
     def _select_key_columns(self):
+        """
+        Removes fields that are not used in modeling.
+        """
         self.df = self.df[['email_count', 'phone_call_count', 'walkin_count', 'CTOR', 'OR', 'days_to_convert',
                            'conversion_ind', 'ping_count_cut_med', 'ping_count_cut_high', 'sent_cut_med',
                            'sent_cut_high', 'sent_cut_very_high', 'open_cut_med', 'open_cut_high',
@@ -117,6 +130,10 @@ class LeadScoreModel:
                            "days_to_convert", "conversion_ind"]]
 
     def process_data(self, meta_fields):
+        """
+        Complets all nessecary processing steps at once.
+        :param meta_fields: list, fields that should be removed from the modeling process but that should be retained for later use.
+        """
         self._fix_data_types()
         self._extract_inquiry_forms()
         self._get_message_rates()
@@ -132,16 +149,31 @@ class LeadScoreModel:
         self.df = self.df.drop(["origin_date", "conversion_date"], axis=1)
 
     def load_model(self, path):
+        """
+        Loads an pre-trained model saved at a specific location.
+        :param path: str, location of a pre-trained model
+        """
         self.model = load(path)
 
     def train_model(self):
+        """
+        Fits a model on cox-proportional hazard model with a regularization value of 0.8
+        """
         self.model = CoxPHFitter(penalizer=0.8)
         self.model.fit(self.df, duration_col="days_to_convert", event_col="conversion_ind")
 
     def save_model(self, path):
+        """
+        Saves the trained model to a given path.
+        :param path: str, location to save the model.
+        """
         dump(self.model, path)
 
     def run_model(self):
+        """
+        Uses the trained model on the given data and produces the probability a record will convert within 1 year.
+        """
+
         # convert cumulative hazard function to probability to convert
         predictions = 1 - self.model.predict_cumulative_hazard(self.df).T
         predictions = np.subtract(predictions.T, predictions[365])
@@ -154,6 +186,12 @@ class LeadScoreModel:
         return predictions
 
     def deploy_to_slate(self, password, max_output_size=10000, username="dataanalyst@gradadmissions.du.edu"):
+        """
+        Deploys the predictions to Slate through an SFTP.
+        :param password: str, sftp password
+        :param path: max_output_size, the largest file that can be loaded to Slate. Larger files will be chunked into smaller files
+        :param path: username, SFTP username.
+        """
         # open sftp connection
         host = "ft.technolutions.net"
         todays_date = date.today().strftime("%Y%m%d")
