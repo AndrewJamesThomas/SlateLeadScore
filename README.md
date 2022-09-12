@@ -17,7 +17,7 @@ Note that, due to FERPA requirements, general data privacy common sense, and a v
 ## Predictive Modeling
 The reality of this project is that, while most leads never start an application, the ones who do signal their intention fairly loudly. This means that building a predictive model should be realively easy. 
 
-There are three key components of this model 1) Origin source (such as an inquiry form, list buy, event, etc.) 2) Online Activity (such as email activity, website pings, phone calls, etc.) 3) Time since Creating (We know that most leads convert in the first couple days, but the likelihood drops off signficantly after that). The first two components are extremely straightforward, but that last one is more complicated. Modelling that relationship will likely require somekind of surival-aware or sequence model.
+There are three key components of this model 1) Origin source (such as an inquiry form, list buy, event, etc.) 2) Online Activity (such as email activity, website pings, phone calls, etc.) 3) Time since creation (We know that most leads convert in the first couple days, but the likelihood drops off signficantly after that). The first two components are extremely straightforward, but that last one is more complicated. Modelling that relationship will likely require somekind of surival-aware or sequence model.
 
 There are two main concerns with using a propensity model in this way:
 a) Individuals may want to include their own variables with their own wieghts. This may seem like an odd request, but it is likely to occur. If this turns out to be an issue we can simply build an alternative "points based" system that can accomadate this request.
