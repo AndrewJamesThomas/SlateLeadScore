@@ -1,3 +1,5 @@
+-- This code is never called by any script in this repo. Instead, it is copied in Slate's custom SQL query tool and executed there.
+
 select top 100
 	-- add basic lead info
 	 o.[record] as [person_id]
