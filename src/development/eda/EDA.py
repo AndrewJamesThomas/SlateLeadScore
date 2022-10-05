@@ -123,20 +123,3 @@ df["walkin_count"].isna().mean()
 # Look at interactions
 corr_mat = df.corr()
 # Not much interest in the correlation matrix. No strong correlations expect between the message fields (Emails Sent, opens, etc.)
-
-
-'''
-Processing Tasks:
-    Fix data leakage issue in SQL (DONE)
-    Fill missing colleges of interest with "unknown"
-    Combine CAHSS colleges of interest
-    Drop ELC, Law and LLI leads
-    Convert Origin Date to datetime type
-    Combine Inquiry forms into single origin
-    Combine major "origin_memos" together
-    Imput Null Values for sent
-    Probably need to handle messages outliers
-    Need to create rate field (open rates, click rates, etc)
-    Handle Ping Outliers
-'''
-
